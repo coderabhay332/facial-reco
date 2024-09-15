@@ -6,7 +6,11 @@ const AWS = require('@aws-sdk/client-s3');
 const User = require('D:/eng/src/config.js'); // Adjust path as necessary
 const multer = require('multer');
 const multerS3 = require('multer-s3');
+const { ListObjectsV2Command, GetObjectCommand } = require("@aws-sdk/client-s3");
+const fs = require("fs");
+const util = require("util");
 
+const pipeline = util.promisify(require("stream").pipeline);
 const app = express();
 
 // Configure session middleware
@@ -203,4 +207,77 @@ app.post('/upload', checkAuth, (req, res) => {
 const port = 8999;
 app.listen(port, () => {
     console.log(`Server running on port: ${port}`);
+});
+
+
+
+
+
+
+// Route to download all files from a specific folder
+app.get('/download-all', checkAuth, async (req, res) => {
+    const userId = req.session.userId;  // Get the user ID from the session
+
+    try {
+        // Find the user in the database
+        const user = await User.findById(userId);
+        if (!user || !user.s3FolderUrl) {
+            return res.status(404).send('User or S3 folder not found');
+        }
+
+        // Define the prefix (folder path) in the S3 bucket
+        const folderKey = `${user._id}/`;
+
+        // List all objects (files) in the user's folder
+        const listParams = {
+            Bucket: bucketName,
+            Prefix: folderKey,
+        };
+
+        const listCommand = new ListObjectsV2Command(listParams);
+        const data = await s3.send(listCommand);
+
+        if (!data.Contents || data.Contents.length === 0) {
+            return res.status(404).send('No files found in the folder');
+        }
+
+        // Define the path where you want to download files on your local machine
+        const downloadFolderPath = path.join('D:/eng/Images');
+
+        // Ensure the folder exists, if not create it
+        if (!fs.existsSync(downloadFolderPath)) {
+            fs.mkdirSync(downloadFolderPath, { recursive: true });
+        }
+
+        // Iterate over each file in the folder and download it
+        for (const file of data.Contents) {
+            const fileKey = file.Key;  // The file path in S3
+            const fileName = path.basename(fileKey);  // Extract the file name
+            const downloadPath = path.join(downloadFolderPath, fileName);  // Local path to save the file
+
+            // Fetch the file from S3
+            const getParams = {
+                Bucket: bucketName,
+                Key: fileKey,
+            };
+
+            const getObjectCommand = new GetObjectCommand(getParams);
+            const s3Object = await s3.send(getObjectCommand);
+
+            // Pipe the file stream to a local file
+            await pipeline(s3Object.Body, fs.createWriteStream(downloadPath));
+
+            console.log(`Downloaded: ${fileName}`);
+        }
+
+        // Send a response after all files are downloaded
+        res.status(200).send({
+            message: 'All files downloaded successfully',
+            downloadFolderPath,
+        });
+
+    } catch (err) {
+        console.error('Error downloading files:', err);
+        res.status(500).send(`Error downloading files: ${err.message}`);
+    }
 });
