@@ -1,17 +1,18 @@
+require('dotenv').config()
 const mongoose = require("mongoose");
-const connect = mongoose.connect("mongodb://localhost:27017/login/user");
+// Connect to MongoDB
+const connect = mongoose.connect(process.env.DATABASE_URI)
 
-// check database connected or not
+// Check if the database is connected
 connect.then(() => {
-    console.log("Database connected Successfully");
+    console.log("Database connected successfully");
 })
-
 .catch(() => {
-    console.log("Database cannot be connected");
+    console.log("Database connection failed");
 });
 
-// created a scheme
-const LoginSchema = new mongoose.Schema({
+// Define the user schema
+const userSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -19,10 +20,15 @@ const LoginSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    s3FolderUrl: {
+        type: String, // URL for the user's S3 folder
+       
     }
 });
 
-// collection part
-const collection = new mongoose.model("users", LoginSchema);
+// Create a model from the schema
+const User = mongoose.model("User", userSchema);
 
-module.exports = collection;
+// Export the User model
+module.exports = User;
