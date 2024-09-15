@@ -5,3 +5,5 @@
 
 ### PHASE 2
 ![image](https://github.com/user-attachments/assets/36741523-c263-4af4-ab24-13ded97a17fa)
+
+Install multer -> Add a route to serve the dashboard page and handle photo uploads. need the multer package to handle file uploads.
