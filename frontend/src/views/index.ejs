@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <style nonce="<%= nonce %>">
+        body {
+            background: linear-gradient(to bottom right, #3c229c, #f8f9fa);
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            text-align: center;
+            padding: 20px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            margin: 10px;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .faq-section {
+            margin-top: 30px;
+            text-align: left;
+        }
+        .faq-section h4 {
+            margin-top: 20px;
+        }
+        .faq-section p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="display-4">Welcome to Our Application</h1>
+        <p class="lead">Get started by exploring our features or login to your account.</p>
+        <a href="/login" class="btn btn-primary">Login</a>
+        <a href="/signup" class="btn btn-primary">Sign Up</a>
+
+        <div class="faq-section">
+            <h2>Frequently Asked Questions (FAQ)</h2>
+            <div>
+                <h4>What is this application about?</h4>
+                <p>This application allows users to manage files securely, including uploading and downloading files. It also features user authentication for secure access.</p>
+            </div>
+            <div>
+                <h4>How do I sign up?</h4>
+                <p>Click on the "Sign Up" button above to create a new account. You will need to provide some basic information to register.</p>
+            </div>
+            <div>
+                <h4>How do I login?</h4>
+                <p>If you already have an account, click on the "Login" button to access your account. Enter your username and password to log in.</p>
+            </div>
+            <div>
+                <h4>How can I contact support?</h4>
+                <p>If you need assistance, please contact our support team via the contact form available in the application or email us directly at support@example.com.</p>
+            </div>
+        </div>
+        <a href="/login" class="btn btn-primary">Login</a>
+        <a href="/signup" class="btn btn-primary">Sign Up</a>
+    </div>
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
