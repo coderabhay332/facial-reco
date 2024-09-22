@@ -1,5 +1,128 @@
-<form action="/signup" method="POST">
-    <input type="text" name="username" placeholder="Enter your username" required>
-    <input type="password" name="password" placeholder="Enter your password" required>
-    <button type="submit">Sign Up</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="img-src 'self' data:;">
+    <title>Sign Up</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <style nonce="<%= nonce %>">
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: radial-gradient(circle, #171717, #0b0e15);
+            font-family: 'Poppins', sans-serif;
+        }
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-image: url('https://picsum.photos/1920/1080');
+            background-size: cover;
+            filter: blur(8px);
+            z-index: -1;
+        }
+        .form-container {
+            position: relative;
+            width: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .form-container h3 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        label {
+            color: #fff;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        input::placeholder {
+            color: #bbb;
+        }
+        button {
+            width: 100%;
+            background-color: #ff5722;
+            color: #fff;
+            padding: 15px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s ease-in-out;
+        }
+        button:hover {
+            background-color: #e64a19;
+        }
+        .form-footer {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .form-footer a {
+            color: #ffeb3b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .form-container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="form-container">
+        <h3>Sign Up</h3>
+        <form action="/signup" method="POST">
+            <div class="mb-3">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+            <div class="mb-3">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+        <div class="form-footer">
+            <p>Already have an account? <a href="/">Login</a></p>
+        </div>
+    </div>
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

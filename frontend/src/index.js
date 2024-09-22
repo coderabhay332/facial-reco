@@ -1,177 +1,74 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-const bcrypt = require('bcryptjs');
-const AWS = require('@aws-sdk/client-s3');
-const User = require('D:/eng/frontend/src/config.js'); // Adjust path as necessary
-const multer = require('multer');
-const multerS3 = require('multer-s3');
-const { ListObjectsV2Command, GetObjectCommand } = require("@aws-sdk/client-s3");
-const fs = require("fs");
-const util = require("util");
-
-const pipeline = util.promisify(require("stream").pipeline);
+const helmet = require('helmet');
+const crypto = require('crypto');
+const { upload } = require('./config/awsConfig');
+const authController = require('./controllers/authController');
+const fileController = require('./controllers/fileController');
 const app = express();
+const User = require('./models/userModel');
+require('./config/dbConfig'); // MongoDB connection
 
-// Configure session middleware
-app.use(session({
-    secret: process.env.SESSION_SECRET || "sec", // Use an environment variable for production
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false } // Set to true if using HTTPS
-}));
-
-// Convert data into JSON format
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// Configure AWS S3
-const s3 = new AWS.S3Client({
-    region: process.env.AWS_REG,
-    credentials: {
-        accessKeyId: process.env.AWS_ID,
-        secretAccessKey: process.env.AWS_SEC,
-    }
+// Middleware to generate nonce
+app.use((req, res, next) => {
+    res.locals.nonce = crypto.randomBytes(16).toString('base64');
+    next();
 });
 
-const bucketName = process.env.S3_BUCKET_NAME || 'face-reco-storage'; // Use env variable
+// Apply middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static('public'));
 
-// Use EJS as the view engine
+// Session configuration
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-session-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
+// Set view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Serve static files from the "public" directory
-app.use(express.static("public"));
+// Apply Helmet for security headers
+app.use(helmet());
+app.use((req, res, next) => {
+    helmet.contentSecurityPolicy({
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", `'nonce-${res.locals.nonce}'`, "https://fonts.googleapis.com", 
+                                                            "https://cdn.jsdelivr.net"],
+            scriptSrc: ["'self'", `'nonce-${res.locals.nonce}'`, "https://cdn.jsdelivr.net"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:"],
+            connectSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: [],
+        },
+    })(req, res, next);
+});
 
 // Routes
 app.get("/", (req, res) => {
-    res.render("login");
+    res.render('index');
 });
 
-app.get("/signup", (req, res) => {
-    res.render("signup");
+app.get("/signup", authController.getSignup);
+app.post('/signup', authController.postSignup);
+
+app.get("/login", authController.getLogin);
+app.post('/login', authController.postLogin);
+
+app.get('/upload', authController.checkAuth, (req, res) => {
+    res.render('upload');
 });
 
-app.post('/signup', async (req, res) => {
-    const data = {
-        name: req.body.username,
-        password: req.body.password,
-    };
-
-    try {
-        // Check if the user already exists
-        const existUser = await User.findOne({ name: data.name });
-        if (existUser) {
-            return res.status(400).send('User already exists, please choose a different username');
-        }
-
-        // Hash the password using bcrypt
-        const saltRounds = 10;
-        const hashSaltPassword = await bcrypt.hash(data.password, saltRounds);
-        data.password = hashSaltPassword;
-
-        // Create user in the database without the URL initially
-        const newUser = new User({
-            name: data.name,
-            password: data.password,
-            s3FolderUrl: '' // Initial empty URL
-        });
-
-        const savedUser = await newUser.save();
-        console.log("New user saved:", savedUser);
-
-        // Create a folder in the S3 bucket for the new user
-        const params = {
-            Bucket: bucketName,
-            Key: `${savedUser._id}/`, // S3 folder key, using the user's unique MongoDB ID
-            Body: '', // Empty body to create a folder
-        };
-
-        await s3.send(new AWS.PutObjectCommand(params));
-        console.log(`S3 folder created for user ${savedUser._id}`);
-
-        // Generate the URL for the user's S3 folder
-        const s3FolderUrl = `https://${bucketName}.s3.${process.env.AWS_REG}.amazonaws.com/${savedUser._id}/`;
-
-        // Update the user's record with the S3 folder URL
-        const updatedUser = await User.findByIdAndUpdate(
-            savedUser._id,
-            { s3FolderUrl: s3FolderUrl },
-            { new: true } // Return the updated document
-        );
-
-        if (!updatedUser) {
-            throw new Error("User update failed");
-        }
-
-        console.log('Updated user with URL:', updatedUser);
-
-        // Send success response
-        res.status(201).send({
-            message: 'User successfully created and S3 folder created',
-            s3FolderUrl,
-        });
-    } catch (error) {
-        res.status(500).send(`Error signing up user: ${error.message}`);
-    }
-});
-
-// Login user
-app.post("/login", async (req, res) => {
-    try {
-        const check = await User.findOne({ name: req.body.username });
-        if (!check) {
-            return res.send("Username not found");
-        }
-        // Compare the hashed password
-        const isPasswordMatch = await bcrypt.compare(req.body.password, check.password);
-        if (isPasswordMatch) {
-            req.session.userId = check._id; // Store user ID in session
-            res.render("home");
-        } else {
-            res.send("Incorrect password");
-        }
-    } catch (error) {
-        res.send("Error logging in");
-    }
-});
-
-// Middleware to check if user is authenticated
-const checkAuth = (req, res, next) => {
-    if (req.session && req.session.userId) {
-        next();
-    } else {
-        res.status(401).send('User not authenticated');
-    }
-};
-
-// Configure multer for S3
-const upload = multer({
-    storage: multerS3({
-        s3: s3,
-        bucket: bucketName,
-        key: async function (req, file, cb) {
-            try {
-                const userId = req.session.userId; // Get user ID from session
-                const user = await User.findById(userId).exec();
-
-                if (!user || !user.s3FolderUrl) {
-                    return cb(new Error('User not found or S3 folder URL missing'));
-                }
-
-                // Construct the key for the file using the desired folder
-                const fileKey = `${userId}/${Date.now()}_${file.originalname}`; // Use userId and a timestamp to avoid name collisions
-                console.log(`Uploading file to: ${fileKey}`);
-                cb(null, fileKey);
-            } catch (err) {
-                cb(err);
-            }
-        }
-    }),
-    limits: { fileSize: 5 * 1024 * 1024 } // Limit file size to 5MB
-}).array('images', 5); // Handle up to 5 files
-
-app.post('/upload', checkAuth, (req, res) => {
+// Apply multer upload middleware and fileController.uploadFiles for the upload route
+app.post('/upload', authController.checkAuth, (req, res) => {
     upload(req, res, async (err) => {
         if (err) {
             return res.status(400).send(`Error uploading files: ${err.message}`);
@@ -204,80 +101,10 @@ app.post('/upload', checkAuth, (req, res) => {
     });
 });
 
-const port = 8999;
+app.get('/download-all', authController.checkAuth, fileController.downloadAllFiles);
+
+// Start the server
+const port = process.env.PORT || 8999;
 app.listen(port, () => {
-    console.log(`Server running on port: ${port}`);
-});
-
-
-
-
-
-
-// Route to download all files from a specific folder
-app.get('/download-all', checkAuth, async (req, res) => {
-    const userId = req.session.userId;  // Get the user ID from the session
-
-    try {
-        // Find the user in the database
-        const user = await User.findById(userId);
-        if (!user || !user.s3FolderUrl) {
-            return res.status(404).send('User or S3 folder not found');
-        }
-
-        // Define the prefix (folder path) in the S3 bucket
-        const folderKey = `${user._id}/`;
-
-        // List all objects (files) in the user's folder
-        const listParams = {
-            Bucket: bucketName,
-            Prefix: folderKey,
-        };
-
-        const listCommand = new ListObjectsV2Command(listParams);
-        const data = await s3.send(listCommand);
-
-        if (!data.Contents || data.Contents.length === 0) {
-            return res.status(404).send('No files found in the folder');
-        }
-
-        // Define the path where you want to download files on your local machine
-        const downloadFolderPath = path.join('D:/eng/backend/Images');
-
-        // Ensure the folder exists, if not create it
-        if (!fs.existsSync(downloadFolderPath)) {
-            fs.mkdirSync(downloadFolderPath, { recursive: true });
-        }
-
-        // Iterate over each file in the folder and download it
-        for (const file of data.Contents) {
-            const fileKey = file.Key;  // The file path in S3
-            const fileName = path.basename(fileKey);  // Extract the file name
-            const downloadPath = path.join(downloadFolderPath, fileName);  // Local path to save the file
-
-            // Fetch the file from S3
-            const getParams = {
-                Bucket: bucketName,
-                Key: fileKey,
-            };
-
-            const getObjectCommand = new GetObjectCommand(getParams);
-            const s3Object = await s3.send(getObjectCommand);
-
-            // Pipe the file stream to a local file
-            await pipeline(s3Object.Body, fs.createWriteStream(downloadPath));
-
-            console.log(`Downloaded: ${fileName}`);
-        }
-
-        // Send a response after all files are downloaded
-        res.status(200).send({
-            message: 'All files downloaded successfully',
-            downloadFolderPath,
-        });
-
-    } catch (err) {
-        console.error('Error downloading files:', err);
-        res.status(500).send(`Error downloading files: ${err.message}`);
-    }
+    console.log(`Server running on port ${port}`);
 });
