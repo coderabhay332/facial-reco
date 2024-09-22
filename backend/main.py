@@ -10,7 +10,7 @@ from io import BytesIO
 from PIL import Image
 
 # Initialize Flask and Flask-SocketIO with threading and CORS
-app = Flask(__name__)
+app = Flask(__name__)  # Corrected this line
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="http://localhost:5173")
 
@@ -32,9 +32,19 @@ def process_frame(image_data):
         # Decode the Base64 image
         image_data = image_data.split(",")[1]  # Skip metadata
         image = Image.open(BytesIO(base64.b64decode(image_data)))
-        img = np.array(image)
+        
+        # Convert image to RGB if it has an alpha channel or is in a different mode
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
 
         # Convert the image from PIL to OpenCV format
+        img = np.array(image)
+        
+        # Check if the image is still in the wrong format
+        if img.ndim != 3 or img.shape[2] != 3:
+            return "Error: Unsupported image format. Image must be RGB."
+
+        # Convert from RGB (PIL) to BGR (OpenCV)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
         # Resize the image for faster processing
@@ -70,6 +80,7 @@ def process_frame(image_data):
                 return "No match found"
     except Exception as e:
         return f"Error processing frame: {e}"
+
 # Flask-SocketIO event to handle incoming video frames
 @socketio.on('video_frame')
 def handle_video_frame(data):

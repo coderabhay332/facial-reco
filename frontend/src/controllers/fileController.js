@@ -4,6 +4,7 @@ const User = require('../models/userModel');
 const { ListObjectsV2Command, GetObjectCommand } = require("@aws-sdk/client-s3");
 const pipeline = util.promisify(require("stream").pipeline);
 require('dotenv').config(); 
+const { Upload } = require('@aws-sdk/lib-storage');
 const path = require('path');
 const fs = require("fs");
 const s3 = new AWS.S3Client({
@@ -54,6 +55,8 @@ exports.uploadFiles = async (req, res) => {
 };
 
 // Download all files for a user from S3
+const { PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+
 exports.downloadAllFiles = async (req, res) => {
     const userId = req.session.userId;  // Get the user ID from the session
 
@@ -73,50 +76,51 @@ exports.downloadAllFiles = async (req, res) => {
             Prefix: folderKey,
         };
 
-        const listCommand = new ListObjectsV2Command(listParams);
-        const data = await s3.send(listCommand);
+        const data = await s3.send(new ListObjectsV2Command(listParams));
 
         if (!data.Contents || data.Contents.length === 0) {
             return res.status(404).send('No files found in the folder');
         }
 
-        // Define the path where you want to download files on your local machine
-        const downloadFolderPath = path.join('F:/facial-reco/backend/Images');
-
-        // Ensure the folder exists, if not create it
-        if (!fs.existsSync(downloadFolderPath)) {
-            fs.mkdirSync(downloadFolderPath, { recursive: true });
-        }
-
-        // Iterate over each file in the folder and download it
+        // Iterate over each file in the folder and upload it to the new S3 path
         for (const file of data.Contents) {
             const fileKey = file.Key;  // The file path in S3
             const fileName = path.basename(fileKey);  // Extract the file name
-            const downloadPath = path.join(downloadFolderPath, fileName);  // Local path to save the file
+            const newFileKey = `Encoder-images/${fileName}`; // New path in S3
 
-            // Fetch the file from S3
+            // Fetch the file from the original S3 location
             const getParams = {
                 Bucket: bucketName,
                 Key: fileKey,
             };
 
-            const getObjectCommand = new GetObjectCommand(getParams);
-            const s3Object = await s3.send(getObjectCommand);
+            const s3Object = await s3.send(new GetObjectCommand(getParams));
 
-            // Pipe the file stream to a local file
-            await pipeline(s3Object.Body, fs.createWriteStream(downloadPath));
+            // Use Upload utility to handle the upload
+            const upload = new Upload({
+                client: s3,
+                params: {
+                    Bucket: 'face-reco-storage',
+                    Key: newFileKey,
+                    Body: s3Object.Body,
+                },
+            });
 
-            console.log(`Downloaded: ${fileName}`);
+            await upload.done(); // Wait for the upload to complete
+            console.log(`Uploaded to S3: ${newFileKey}`);
+
+            // Optionally delete the original file if necessary
+            // await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: fileKey }));
+            // console.log(`Deleted original file: ${fileKey}`);
         }
 
-        // Send a response after all files are downloaded
+        // Send a response after all files are moved
         res.status(200).send({
-            message: 'All files downloaded successfully',
-            downloadFolderPath,
+            message: 'All files moved to S3 successfully',
         });
 
     } catch (err) {
-        console.error('Error downloading files:', err);
-        res.status(500).send(`Error downloading files: ${err.message}`);
+        console.error('Error moving files:', err);
+        res.status(500).send(`Error moving files: ${err.message}`);
     }
 }

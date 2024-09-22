@@ -7,20 +7,25 @@ const crypto = require('crypto');
 const { upload } = require('./config/awsConfig');
 const authController = require('./controllers/authController');
 const fileController = require('./controllers/fileController');
-const app = express();
 const User = require('./models/userModel');
 require('./config/dbConfig'); // MongoDB connection
 
-// Middleware to generate nonce
+const app = express();
+
+// Middleware to generate nonce for inline scripts/styles
 app.use((req, res, next) => {
     res.locals.nonce = crypto.randomBytes(16).toString('base64');
     next();
 });
 
-// Apply middleware
+// Apply basic middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Session configuration
 app.use(session({
@@ -34,27 +39,54 @@ app.use(session({
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Apply Helmet for security headers
-app.use(helmet());
+// Apply Helmet with global CSP
+
 app.use((req, res, next) => {
-    helmet.contentSecurityPolicy({
-        directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", `'nonce-${res.locals.nonce}'`, "https://fonts.googleapis.com", 
-                                                            "https://cdn.jsdelivr.net"],
-            scriptSrc: ["'self'", `'nonce-${res.locals.nonce}'`, "https://cdn.jsdelivr.net"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:"],
-            connectSrc: ["'self'"],
-            objectSrc: ["'none'"],
-            upgradeInsecureRequests: [],
+    helmet({
+        contentSecurityPolicy: {
+            useDefaults: true, // Use default CSP rules and add your own
+            directives: {
+                defaultSrc: ["'self'"],
+                styleSrc: [
+                    "'self'",
+                    `'nonce-${res.locals.nonce}'`, // Use the nonce generated earlier
+                    'https://fonts.googleapis.com',
+                    'https://cdn.jsdelivr.net',
+                    'https://cdnjs.cloudflare.com',
+                    'https://cdn.tailwindcss.com' // Allow Tailwind CSS
+                ],
+                scriptSrc: [
+                    "'self'",
+                    `'nonce-${res.locals.nonce}'`, // Use the nonce for inline scripts
+                    'https://cdn.jsdelivr.net',
+                    'https://cdnjs.cloudflare.com',
+                    // 'https://unpkg.com', // Allow unpkg
+                    'https://cdn.tailwindcss.com', // Allow Tailwind CSS
+                    "'sha256-ehPVrgdV2GwJCE7DAMSg8aCgaSH3TZmA66nZZv8XrTg='" // Add your sha256 hash if needed
+                ],
+                fontSrc: [
+                    "'self'",
+                    'https://fonts.gstatic.com',
+                    'https://cdnjs.cloudflare.com'
+                ],
+                imgSrc: [
+                    "'self'",
+                    'data:',
+                    'https://your-s3-bucket-url' // Allow your S3 bucket for images
+                ],
+                connectSrc: ["'self'"],
+                objectSrc: ["'none'"],
+                frameSrc: ["'none'"],
+                upgradeInsecureRequests: []
+            }
         },
+        crossOriginEmbedderPolicy: false // Disable COEP if required
     })(req, res, next);
 });
 
 // Routes
-app.get("/", (req, res) => {
-    res.render('index');
+app.get('/', (req, res) => {
+    res.render('index', { nonce: res.locals.nonce });
 });
 
 app.get("/signup", authController.getSignup);
@@ -64,7 +96,7 @@ app.get("/login", authController.getLogin);
 app.post('/login', authController.postLogin);
 
 app.get('/upload', authController.checkAuth, (req, res) => {
-    res.render('upload');
+    res.render('upload', { nonce: res.locals.nonce });
 });
 
 // Apply multer upload middleware and fileController.uploadFiles for the upload route
@@ -78,19 +110,15 @@ app.post('/upload', authController.checkAuth, (req, res) => {
             return res.status(400).send('No files were uploaded.');
         }
 
-        // Extract file URLs from S3
         const fileUrls = req.files.map(file => file.location);
         console.log('Uploaded file URLs:', fileUrls);
 
-        // Optional: If you need to store file URLs in the user’s record, handle it here
         try {
             const updatedUser = await User.findById(req.session.userId);
-
             if (!updatedUser) {
                 return res.status(404).send('User not found');
             }
 
-            // Assuming the S3 folder URL is already set, just handle response
             res.status(200).json({
                 message: 'Files successfully uploaded',
                 fileUrls
