@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
-import Button from './components/Button';
-import { CardContent, CardHeader, CardTitle } from './components/Card';
-import { Card } from './components/Card';
+import Button from './components/Button'; // Ensure this path is correct
+import { CardContent, CardHeader, CardTitle, Card } from './components/Card';
 
 // Establish connection to Flask-SocketIO
 const socket = io('http://localhost:5000'); // Update with your Flask-SocketIO backend address
@@ -75,7 +74,7 @@ const RealTimeRecognition: React.FC = () => {
   }, [isStreaming]);
 
   return (
-    <div className="container mx-auto p-4">
+    <div  className="container mx-auto p-4 cadetblue "  >
       <h1 className="text-2xl font-bold mb-4">Real-time Recognition</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>

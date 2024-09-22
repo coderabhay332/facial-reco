@@ -1,13 +1,409 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Upload Images</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Upload</title>
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #fff;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    .card {
+      width: 100%;
+      max-width: 500px;
+      background-color: #f9f9f9;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      text-align: center;
+    }
+    .upload-area {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .upload-area.active {
+      border-color: #666;
+      background-color: #e0e0e0;
+    }
+    .upload-area:hover {
+      border-color: #888;
+    }
+    .file-name {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .button:hover {
+      background-color: #333;
+    }
+    .alert {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    .alert .icon {
+      margin-right: 10px;
+    }
+    .alert.success {
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+    }
+    .alert.success .icon {
+      color: #28a745;
+    }
+  </style>
 </head>
 <body>
-    <h1>Upload Images</h1>
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-        <input type="file" name="images" multiple />
-        <button type="submit">Upload</button>
-    </form>
+  <div class="card">
+    <h1>File Upload</h1>
+    
+    <div 
+      id="uploadArea" 
+      class="upload-area" 
+      onclick="document.getElementById('fileInput').click()"
+    >
+      <input 
+        id="fileInput" 
+        type="file" 
+        style="display: none;" 
+        onchange="handleFileChange(event)"
+      />
+      <div class="icon">📁</div>
+      <p id="uploadText">Drag and drop your file here, or click to select</p>
+    </div>
+    
+    <div id="fileInfo" class="file-name" style="display: none;">
+      <span id="fileName"></span>
+      <button class="button" onclick="removeFile()">❌</button>
+    </div>
+    
+    <button 
+      id="uploadButton" 
+      class="button" 
+      onclick="uploadFile()" 
+      disabled
+    >
+      Upload File
+    </button>
+    
+    <div id="alert" class="alert success" style="display: none;">
+      <div class="icon">✅</div>
+      <div id="alertText">File uploaded successfully!</div>
+    </div>
+  </div>
+
+  <script>
+    let file = null;
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileNameElement = document.getElementById('fileName');
+    const fileInfo = document.getElementById('fileInfo');
+    const uploadText = document.getElementById('uploadText');
+    const uploadButton = document.getElementById('uploadButton');
+    const alertElement = document.getElementById('alert');
+    const alertText = document.getElementById('alertText');
+
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('active');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('active');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('active');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    function handleFileChange(event) {
+      if (event.target.files && event.target.files[0]) {
+        handleFile(event.target.files[0]);<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FaceTrack AI Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <style>
+        /* Additional custom styles if needed */
+        .card {
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .avatar {
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            overflow: hidden;
+        }
+        .avatar img {
+            width: 100%;
+            height: auto;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 50px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(14px);
+        }
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="flex h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white shadow-lg p-4 flex flex-col">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">FaceTrack AI</h2>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between text-gray-700">
+                <span>System Active</span>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <button class="w-full bg-blue-500 text-white hover:bg-blue-600 p-2 rounded flex items-center">
+                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                Settings
+            </button>
+            <button class="w-full bg-purple-500 text-white hover:bg-purple-600 p-2 rounded flex items-center">
+                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 6h4v12h-4z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                Notifications
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-md p-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold text-gray-800">Real-Time Monitoring</h1>
+                <div class="relative inline-block text-left">
+                    <button class="flex items-center space-x-2 text-gray-700 p-2 rounded bg-white border border-gray-300">
+                        <div class="avatar">
+                            <img src="/placeholder.svg?height=32&width=32" alt="User">
+                        </div>
+                        <span>User Name</span>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
+                    <div class="absolute right-0 w-48 mt-2 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg">
+                        <ul class="py-1">
+                            <li><a href="#" class="block px-4 py-2 text-gray-700">Profile</a></li>
+                            <li><a href="#" class="block px-4 py-2 text-gray-700">Settings</a></li>
+                            <li><a href="#" class="block px-4 py-2 text-gray-700">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Live Feed -->
+                <div class="card border-2 border-blue-200">
+                    <div class="bg-blue-50 p-4 border-b">
+                        <h3 class="text-blue-700 text-xl">Live Feed</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="aspect-video bg-gradient-to-r from-blue-200 to-purple-200 rounded-md flex items-center justify-center overflow-hidden relative">
+                            <svg class="h-16 w-16 text-blue-500 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 6h16v12H4z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-300 opacity-50 animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Detections -->
+                <div class="card border-2 border-purple-200">
+                    <div class="bg-purple-50 p-4 border-b">
+                        <h3 class="text-purple-700 text-xl">Recent Detections</h3>
+                    </div>
+                    <div class="p-4">
+                        <ul class="space-y-2">
+                            <li class="flex items-center space-x-2 p-2 bg-purple-100 rounded-md">
+                                <div class="avatar">
+                                    <img src="/placeholder.svg?height=32&width=32&text=Face1" alt="Detected face 1">
+                                </div>
+                                <div>
+                                    <p class="font-medium text-purple-700">Person 1</p>
+                                    <p class="text-sm text-purple-500">{current time}</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center space-x-2 p-2 bg-purple-100 rounded-md">
+                                <div class="avatar">
+                                    <img src="/placeholder.svg?height=32&width=32&text=Face2" alt="Detected face 2">
+                                </div>
+                                <div>
+                                    <p class="font-medium text-purple-700">Person 2</p>
+                                    <p class="text-sm text-purple-500">{current time}</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center space-x-2 p-2 bg-purple-100 rounded-md">
+                                <div class="avatar">
+                                    <img src="/placeholder.svg?height=32&width=32&text=Face3" alt="Detected face 3">
+                                </div>
+                                <div>
+                                    <p class="font-medium text-purple-700">Person 3</p>
+                                    <p class="text-sm text-purple-500">{current time}</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="card border-2 border-pink-200">
+                    <div class="bg-pink-50 p-4 border-b">
+                        <h3 class="text-pink-700 text-xl">System Statistics</h3>
+                    </div>
+                    <div class="p-4">
+                        <dl class="grid grid-cols-2 gap-4">
+                            <div class="bg-blue-100 p-4 rounded-lg">
+                                <dt class="text-sm font-medium text-gray-600 flex items-center">
+                                    <svg class="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 13l4 4L21 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                                    <span class="ml-2">Total Detections</span>
+                                </dt>
+                                <dd class="text-2xl font-semibold text-gray-800 mt-2">1,234</dd>
+                            </div>
+                            <div class="bg-green-100 p-4 rounded-lg">
+                                <dt class="text-sm font-medium text-gray-600 flex items-center">
+                                    <svg class="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 6h4v12h-4z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                                    <span class="ml-2">Accuracy</span>
+                                </dt>
+                                <dd class="text-2xl font-semibold text-gray-800 mt-2">98.7%</dd>
+                            </div>
+                            <div class="bg-yellow-100 p-4 rounded-lg">
+                                <dt class="text-sm font-medium text-gray-600 flex items-center">
+                                    <svg class="h-6 w-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 6h16v12H4z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                                    <span class="ml-2">Uptime</span>
+                                </dt>
+                                <dd class="text-2xl font-semibold text-gray-800 mt-2">99.9%</dd>
+                            </div>
+                            <div class="bg-red-100 p-4 rounded-lg">
+                                <dt class="text-sm font-medium text-gray-600 flex items-center">
+                                    <svg class="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7l10 5 10-5-10-5zM12 22l10-5-10-5-10 5 10 5z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                                    <span class="ml-2">Alerts</span>
+                                </dt>
+                                <dd class="text-2xl font-semibold text-gray-800 mt-2">5</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
+
+      }
+    }
+
+    function handleFile(selectedFile) {
+      file = selectedFile;
+      fileNameElement.textContent = file.name;
+      fileInfo.style.display = 'flex';
+      uploadText.textContent = file.name;
+      uploadButton.disabled = false;
+    }
+
+    function removeFile() {
+      file = null;
+      fileNameElement.textContent = '';
+      fileInfo.style.display = 'none';
+      uploadText.textContent = 'Drag and drop your file here, or click to select';
+      uploadButton.disabled = true;
+    }
+
+    function uploadFile() {
+      if (file) {
+        uploadButton.textContent = 'Uploading...';
+        setTimeout(() => {
+          uploadButton.textContent = 'Upload File';
+          alertElement.style.display = 'flex';
+          setTimeout(() => alertElement.style.display = 'none', 3000);
+          removeFile();
+        }, 2000);
+      }
+    }
+  </script>
 </body>
 </html>

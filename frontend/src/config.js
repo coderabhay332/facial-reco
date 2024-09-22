@@ -7,8 +7,8 @@ const connect = mongoose.connect(process.env.DATABASE_URI)
 connect.then(() => {
     console.log("Database connected successfully");
 })
-.catch(() => {
-    console.log("Database connection failed");
+.catch((e) => {
+    console.log("Database connection failed",e);
 });
 
 // Define the user schema

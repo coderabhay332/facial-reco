@@ -1,40 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-NmnwSmqZgWlZ5lIog2D0RIn+Z93mnFlj5oAwL8yv+Ar/c0T3P9yXlpGaR4lkRP04" crossorigin="anonymous">
-    <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AuraMatch Landing Page</title>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header text-center">
-                        <h3>Login</h3>
-                    </div>
-                    <div class="card-body">
-                        <form action="/login" method="POST">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="name" name="username" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Login</button>
-                        </form>
-                    </div>
-                    <div class="card-footer text-center">
-                        <p>Don't have an account? <a href="/signup">Sign Up</a></p>
-                    </div>
-                </div>
-            </div>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  <header class="p-6 bg-white shadow-sm">
+    <nav class="flex justify-between items-center max-w-7xl mx-auto">
+      <h1 class="text-3xl font-bold text-blue-700">AuraMatch</h1>
+      <div class="space-x-4">
+        <button class="bg-transparent text-blue-700 hover:text-blue-900 hover:bg-blue-100 py-2 px-4 rounded">Log In</button>
+        <button class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Sign Up</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-12 md:py-24">
+    <div class="flex flex-col md:flex-row items-center gap-12 mb-24">
+      <div class="flex-1 space-y-6">
+        <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
+          Secure Your World with Advanced Face Recognition
+        </h2>
+        <p class="text-xl text-gray-600">
+          AuraMatch leverages cutting-edge AI to provide instant, accurate face recognition, enhancing security and streamlining access control for businesses and organizations of all sizes.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <button class="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6 rounded flex items-center justify-center">
+            Start Free Trial
+            <svg class="ml-2 w-5 h-5" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+          <button class="border border-blue-600 text-blue-600 hover:bg-blue-100 text-lg px-8 py-6 rounded">Watch Demo</button>
         </div>
+      </div>
+      <div class="flex-1 relative">
+        <div class="aspect-square bg-gradient-to-br from-blue-300 to-indigo-300 rounded-full overflow-hidden shadow-2xl">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <svg class="w-1/2 h-1/2 text-white animate-pulse" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 4h8m-8 4h8m-8 4h8m-8 4h8"/>
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <svg class="w-12 h-12 text-blue-600 mb-4" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1M12 8h.01"/>
+        </svg>
+        <h3 class="text-xl font-semibold mb-2">Lightning Fast</h3>
+        <p class="text-gray-600">Process thousands of faces in real-time with unparalleled speed, ensuring smooth operations even in high-traffic areas.</p>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <svg class="w-12 h-12 text-blue-600 mb-4" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0"/>
+        </svg>
+        <h3 class="text-xl font-semibold mb-2">Secure & Private</h3>
+        <p class="text-gray-600">Your data is encrypted and protected with state-of-the-art security measures, complying with global privacy standards.</p>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <svg class="w-12 h-12 text-blue-600 mb-4" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+        <h3 class="text-xl font-semibold mb-2">Highly Accurate</h3>
+        <p class="text-gray-600">Our AI delivers industry-leading accuracy in face recognition and matching, minimizing false positives and enhancing overall security.</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg p-8 mb-24">
+      <h3 class="text-3xl font-bold text-gray-900 mb-6">Why Choose AuraMatch?</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-blue-500 mt-1 mr-2" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+          <div>
+            <h4 class="font-semibold text-gray-900">Scalable Solution</h4>
+            <p class="text-gray-600">Whether you're a small business or a large enterprise, AuraMatch scales to meet your needs.</p>
+          </div>
+        </div>
+
+        <!-- Repeat the above structure for other features -->
+      </div>
+    </div>
+
+    <div class="bg-blue-600 text-white rounded-xl shadow-lg p-8 text-center">
+      <h3 class="text-3xl font-bold mb-4">Ready to Secure Your Future?</h3>
+      <p class="text-xl mb-6">Join thousands of satisfied customers who trust AuraMatch for their security needs.</p>
+      <button class="bg-white text-blue-600 hover:bg-blue-100 text-lg px-8 py-6 rounded">
+        Get Started Now
+        <svg class="ml-2 w-5 h-5" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+  </main>
+
+  <footer class="bg-gray-100 py-12 mt-24">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <h4 class="font-bold text-gray-900 mb-4">AuraMatch</h4>
+          <p class="text-gray-600">Revolutionizing security with advanced face recognition technology.</p>
+        </div>
+
+        <!-- Repeat the above structure for other sections like Product, Company, Legal -->
+
+      </div>
+      <div class="mt-8 pt-8 border-t border-gray-200 text-center text-gray-600">
+        <p>&copy; <script>document.write(new Date().getFullYear())</script> AuraMatch. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Ensure the Lucide icons render
+    lucide.createIcons();
+  </script>
 </body>
 </html>
