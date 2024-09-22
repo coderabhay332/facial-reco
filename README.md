@@ -92,4 +92,4 @@ Users can sign up, log in, and upload images to the platform. Each user’s imag
 
 This project demonstrates a real-time face recognition system using modern web technologies. Feel free to contribute to the project by opening issues or submitting pull requests.
 
-For more information, contact the project owner at: [akgabhay11@gmail.com]
+For more information, contact the project owner at: [akgabhay11@gmail.com, softgpt9299@gmail.com]
