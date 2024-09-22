@@ -118,7 +118,8 @@ app.post('/upload', authController.checkAuth, (req, res) => {
             if (!updatedUser) {
                 return res.status(404).send('User not found');
             }
-
+          
+            
             res.status(200).json({
                 message: 'Files successfully uploaded',
                 fileUrls
